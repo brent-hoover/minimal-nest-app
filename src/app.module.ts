@@ -9,8 +9,17 @@ import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Job } from 'bullmq';
 
 let redisURL: URL
+let connection: { host: string; port: number; username: string; password: string; family: number; };
 if (process.env.REDIS_URL) {
     redisURL = new URL(process.env.REDIS_URL);
+    connection = {
+        host: redisURL.hostname,
+        port: Number(redisURL.port),
+        username: redisURL.username,
+        password: redisURL.password,
+        family: 0,  // This allows both IPv4 and IPv6 connections
+    }
+    console.log(`Using Redis connection details: ${JSON.stringify(connection)}`);
 } else {
     console.log('Using default local Redis connection');
     redisURL = new URL('redis://localhost:6379');
@@ -39,13 +48,7 @@ export class AppController {
 @Module({
     imports: [
         BullModule.forRoot({
-            connection: {
-                host: redisURL.hostname,
-                port: Number(redisURL.port),
-                username: redisURL.username,
-                password: redisURL.password,
-                family: 0,  // This allows both IPv4 and IPv6 connections
-            },
+            connection: connection,
         }),
         BullModule.registerQueue({
             name: 'test-queue',
