@@ -6,6 +6,8 @@ import { Queue } from 'bull';
 import { Process, Processor } from '@nestjs/bull';
 import { Job } from 'bull';
 
+const redisURL = new URL(process.env.REDIS_URL);
+
 @Processor('test-queue')
 export class TestConsumer {
     @Process()
@@ -29,7 +31,13 @@ export class AppController {
 @Module({
     imports: [
         BullModule.forRoot({
-            redis: process.env.REDIS_URL,
+            redis: {
+                family: 0,
+                host: redisURL.hostname,
+                port: Number(redisURL.port),
+                username: redisURL.username,
+                password: redisURL.password
+            },
         }),
         BullModule.registerQueue({
             name: 'test-queue',
