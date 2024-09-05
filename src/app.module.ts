@@ -19,7 +19,7 @@ if (process.env.REDIS_URL) {
         password: redisURL.password,
         family: 0,  // This allows both IPv4 and IPv6 connections
     }
-    console.log(`Using Redis connection details: ${JSON.stringify(connection)}`);
+    console.log(connection);
 } else {
     console.log('Using default local Redis connection');
     redisURL = new URL('redis://localhost:6379');
