@@ -1,17 +1,25 @@
 import { Module } from '@nestjs/common';
-import { BullModule } from '@nestjs/bull';
+import { BullModule } from '@nestjs/bullmq';
 import { Controller, Get } from '@nestjs/common';
-import { InjectQueue } from '@nestjs/bull';
-import { Queue } from 'bull';
-import { Process, Processor } from '@nestjs/bull';
-import { Job } from 'bull';
+import { InjectQueue } from '@nestjs/bullmq';
+import { Queue } from 'bullmq';
 
-const redisURL = new URL(process.env.REDIS_URL);
+// Test queue processor
+import { Processor, WorkerHost } from '@nestjs/bullmq';
+import { Job } from 'bullmq';
+
+let redisURL: URL
+if (process.env.REDIS_URL) {
+    redisURL = new URL(process.env.REDIS_URL);
+} else {
+    console.log('Using default local Redis connection');
+    redisURL = new URL('redis://localhost:6379');
+}
+
 
 @Processor('test-queue')
-export class TestConsumer {
-    @Process()
-    async transcode(job: Job<unknown>) {
+export class TestConsumer extends WorkerHost {
+    async process(job: Job): Promise<any> {
         console.log('Processing job', job.id);
         return {};
     }
@@ -23,7 +31,7 @@ export class AppController {
 
     @Get()
     async addJob() {
-        const job = await this.testQueue.add({ test: 'data' });
+        const job = await this.testQueue.add('test-job', { test: 'data' });
         return { jobId: job.id };
     }
 }
@@ -31,12 +39,12 @@ export class AppController {
 @Module({
     imports: [
         BullModule.forRoot({
-            redis: {
-                family: 0,
+            connection: {
                 host: redisURL.hostname,
                 port: Number(redisURL.port),
                 username: redisURL.username,
-                password: redisURL.password
+                password: redisURL.password,
+                family: 0,  // This allows both IPv4 and IPv6 connections
             },
         }),
         BullModule.registerQueue({
