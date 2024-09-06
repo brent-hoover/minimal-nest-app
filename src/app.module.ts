@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { Controller, Get } from '@nestjs/common';
 import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Job } from 'bullmq';
-import { RedisPlugin } from './redis.plugin.js';
+import { RedisPlugin } from './redis.plugin';
 
 @Processor('test-queue')
 export class TestConsumer extends WorkerHost {

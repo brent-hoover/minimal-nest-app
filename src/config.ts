@@ -1,5 +1,5 @@
 import { str, num, bool, makeValidator, cleanEnv } from 'envalid';
-import dotenv from 'dotenv';
+import * as dotenv from 'dotenv';
 
 // Load environment variables from .env file
 dotenv.config();
